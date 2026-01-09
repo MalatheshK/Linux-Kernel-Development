@@ -1,0 +1,199 @@
+Introduction to Writing Your First Kernel Patch
+In this chapter, you will get to write your first kernel patch.
+
+
+Learning Objectives
+By the end of this chapter, you should be able to:
+
+Make a kernel change.
+Test your patch.
+Commit your change and generate your patch.
+Validation if your patch meets coding style guidelines.
+
+
+Creating a User-Specific Git Configuration File
+Let's start by configuring global git options, and then you can go on to cloning the kernel repository.
+
+Create a user-specific Git configuration file named .gitconfig in your home directory with your name, email and other needed configurations. This information is used for commits and patch generation.
+
+[user]
+  name = Your Name
+  email = your.email@example.com
+
+[format]
+      signoff = true
+
+[core]  
+      editor = vim
+
+[sendemail]
+      smtpserver     = mail.xxxx.com
+      smtpserverport = portum
+      smtpencryption = tls
+      smtpuser       = user
+      smtppass       = password
+
+The email in the .gitconfig file should be the same email you will use to send patches. The name is the Author name, and the email is the email address for the commit. Linux kernel developers will not accept a patch where the From email differs from the Signed-off-by line, which is what will happen if these two emails do not match. Configuring signoff = true as shown above adds the Signed-off-line with the configured email as shown above in email=your.email@example.com to the commit. This can be done manually by running the git command with the -s option. E.g.:
+
+git commit -s
+
+Configure the name= field with your full legal name. We mentioned earlier that by adding your Signed-off-by line to a patch, you certify that you have read and understood the Developer's Certificate of Origin and abide by the Linux Kernel Enforcement Statement. Please review the documents before you send patches to the kernel.
+
+
+
+Kernel Configuration
+Let's work with the mainline kernel to create your first patch. By this time, if you have completed the exercises from the previous chapters, you should already have the mainline kernel running on your system. While doing that, we asked you to copy the distribution configuration file to generate the kernel configuration. Now, let's talk about the kernel configuration.
+
+The Linux kernel is entirely configurable. Drivers can be configured to be installed and completely disabled. Here are three options for driver installation:
+
+Disabled
+Built into the kernel (vmlinux image) to be loaded at boot time
+Built as a module to be loaded as needed using modprobe
+To avoid large kernel images, it is a good idea to configure drivers as modules. Modules (.ko files) can be loaded when the kernel detects hardware that matches the driver. Building drivers as modules allows them to be loaded on demand, instead of keeping them around in the kernel image even when the hardware is either not being used, or not even present on the system.
+
+We discussed generating the new configuration with the old one as the starting point. New releases often introduce new configuration variables and, in some cases, rename the configuration symbols. The latter causes problems, and make oldconfig might not generate a new working kernel.
+
+Run make listnewconfig after copying the configuration from /boot to the .config file, to see a list of new configuration symbols. Kconfig make config is a good source about Kconfig and make config. Please refer to the Kernel Build System to understand the kernel build framework and the kernel makefiles.
+
+
+
+
+Creating a New Branch
+Before making a change, let's create a new branch in the linux_mainline repository you cloned earlier to write your first patch. We will start by adding a remote first to do a rebase (pick up new changes made to the mainline).
+
+cd linux_mainline
+git branch -a
+
+* master
+  remotes/linux/master
+  remotes/origin?HEAD -> origin/master
+  remotes/origin/master
+
+
+Adding a Remote
+Let’s add git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git as the remote named linux. Adding a remote helps us fetch changes and choose a tag to rebase from.
+
+git remote add linux git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+git fetch linux
+remote: Counting objects: 3976, done.
+remote: Compressing objects: 100% (1988/1988), done.
+remote: Total 3976 (delta 2458), reused 2608 (delta 1969)
+Receiving objects: 100% (3976/3976), 6.67 MiB | 7.80 MiB/s, done.
+Resolving deltas: 100% (2458/2458), done.
+From git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux
+   2a11c76e5301..ecb095bff5d4   master -> linux/master
+ * [new tag]                  v5.x-rc3 -> v5.x-rc3
+
+We can pick a tag to rebase to. In this case, there is only one new tag. Let’s hold off on the rebase and start writing a new patch.
+
+
+Checkout the Branch
+To check out a branch, run:
+
+git checkout -b work
+
+master
+* work
+  remotes/linux/master
+  remotes/origin/HEAD -> origin/master
+  remotes/origin/master
+
+
+
+Making Changes to a Driver
+Now, let’s select a driver to make a change. Run lsmod to see the modules loaded on your system, and pick a driver to change. We will walk you through changing the uvcvideo driver. If you don’t have uvcvideo on your system, find a different driver and follow along using your driver name instead of uvcvideo.
+
+Once you have a driver's name, it's time to find out where the .c and .h files for that driver are in the Linux kernel repository. Even though searching Makefiles will get you the desired result, git grep will get you there faster, searching only the checked-in files in the repository. git grep will skip all generated files such as .o’s, .ko’s and binaries. It will skip the .git directory as well. Okay, now let’s run git grep to look for uvcvideo files.
+
+git grep uvcvideo -- '*Makefile'
+drivers/media/usb/uvc/Makefile:uvcvideo-objs := uvc_driver.o uvc_queue.o uvc_v4l2.o uvc_video.o uvc_ctrl.o drivers/media/usb/uvc/Makefile:uvcvideo-objs += uvc_entity.o
+drivers/media/usb/uvc/Makefile:obj-$(CONFIG_USB_VIDEO_CLASS) += uvcvideo.o
+
+uvcvideo is a USB Video Class (UVC) media driver for video input devices, such as webcams. It supports webcams on laptops. Let’s check the source files for this driver.
+
+ls drivers/media/usb/uvc/
+Kconfig uvc_debugfs.c uvc_isight.c uvc_status.c uvcvideo.h
+Makefile uvc_driver.c uvc_metadata.c uvc_v4l2.c
+uvc_ctrl.c uvc_entity.c uvc_queue.c uvc_video.c
+
+Let's make a small change to the probe function of the uvcvideo driver. A probe function is called when the driver is loaded. Let's edit uvc_driver.c:
+
+vim drivers/media/usb/uvc/uvc_driver.c
+
+Find the probe function by searching for _probe text by typing / in standard mode. Once you've found the probe function, add pr_info() to it and save the file. A pr_info() function writes a message to the kernel log buffer, and we can see it using dmesg.
+
+static int uvc_probe(struct usb_interface *intf,
+                     const struct usb_device_id *id)
+{
+        struct usb_device *udev = interface_to_usbdev(intf);
+        struct uvc_device *dev;
+        const struct uvc_device_info *info =
+                (const struct uvc_device_info *)id->driver_info;
+        int function;
+        int ret;
+
+        pr_info("I changed uvcvideo driver in the Linux Kernel\n");
+
+        if (id->idVendor && id->idProduct)
+                uvc_trace(UVC_TRACE_PROBE, "Probing known UVC device %s "
+                                "(%04x:%04x)\n", udev->devpath, id->idVendor,
+                                id->idProduct);
+        else
+                uvc_trace(UVC_TRACE_PROBE, "Probing generic UVC device %s\n",
+                                udev->devpath);​
+
+Let’s try configuring uvcvideo as a built-in and as a module to play with installing, loading and unloading modules.
+
+Configure as a module:
+
+Configure CONFIG_USB_VIDEO_CLASS=m
+Recompile your kernel and install. Please note that you don't have to reboot your system. You can load your newly installed module.
+Load module:
+
+sudo modprobe uvcvideo
+Once you load the module, let's check if you see your message.
+Run dmesg | less and search for "I changed". Do you see the message?
+Run lsmod | grep uvcvideo. Do you see the module?
+Unload module:
+
+sudo rmmod uvcvideo
+Check dmesg for any messages about the uvcvideo module removal.
+Run lsmod | grep uvcvideo. Do you see the module?
+Configure Built-in:
+
+Configure CONFIG_USB_VIDEO_CLASS=y
+Recompile your kernel, install, and reboot the system into the newly installed kernel.
+Run dmesg | less and search for "I changed". Do you see the message?
+
+
+
+Practicing Commits
+Let's practice committing a change. You can see the files you modified by running the git status command. Let's first check if your changes follow the coding guidelines outlined in the Linux kernel coding style guide. You can run checkpatch.pl on the diff or the generated patch to verify if your changes comply with the coding style. It is good practice to check by running checkpatch.pl on the diff before testing and committing the changes. We find it useful to do this step even before we start testing our patch. This helps avoid redoing testing in case code changes are necessary to address the checkpatch errors and warnings.
+
+You can see my patch workflow below.
+
+ 
+
+
+
+Patch Workflow
+
+ 
+
+Address checkpatch errors and/or warnings. Once checkpatch is happy, test your changes and commit your changes.
+
+If you want to commit all modified files, run:
+
+git commit -a
+
+If you have changes that belong in separate patches, run:
+
+git commit <filenames>
+
+When you commit a patch, you will have to describe what the patch does. The commit message has a subject or short log and a longer commit message. Learning what should be in the commit log and what doesn’t make sense is important. Including what code does isn’t very helpful, whereas why the code change is needed is valuable. Please read How to Write a Git Commit Message for tips on writing good commit messages.
+
+Now, run the commit and add a commit message. After committing the change, generate the patch by running the following command:
+
+git format-patch -1 <commit ID>
+
+
