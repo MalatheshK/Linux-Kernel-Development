@@ -1,0 +1,34 @@
+Introduction to Working with the Linux Kernel Community
+​In this chapter, we will focus on the code of conduct and the Linux kernel enforcement statements.
+
+Learning Objectives
+By the end of this chapter, you should be able to:
+
+Understand what is expected of you as a contributor.
+Discuss the code of conduct you need to abide by to participate in the Linux kernel community.
+Discuss Linux kernel licensing.
+Understand the community's views on license enforcement.
+
+Linux Kernel Contributor Covenant Code of Conduct
+The Linux kernel community abides by the Linux Kernel Contributor Covenant Code of Conduct. This means that contributors and maintainers pledge to foster an open and welcoming community to participate in and become part of.
+
+The Linux kernel is often a labor of love of a community that truly thinks independently together. As a community, we value diversity of thought in solving technical problems.
+
+We must foster and promote a welcoming environment for developers from all backgrounds. With these goals in mind, the Linux kernel community adopted and abides by the Linux Kernel Contributor Covenant Code of Conduct.
+
+What does this mean for contributors and maintainers? Both of these (overlapping) groups of individuals pledge to foster an open and welcoming environment and community to participate in and become part of; a welcoming place where people can speak their mind respectfully in expressing differing viewpoints and coming to consensus on technical problems. The Linux kernel community provides a Contributor Code of Conduct document, which outlines a generic set of rules, and another document that provides more specific guidelines that apply to the Linux kernel community to suit its unique needs.
+
+Please review the Contributor Covenant Code of Conduct and the Linux Kernel Contributor Covenant Code of Conduct Interpretation to understand how to conduct yourself as a contributor and participant in the community. It is important to understand that when you send a patch with your sign-off, you agree to abide by the code of conduct outlined in these two documents.
+
+Linux Enforcement Statement
+Next, let's talk about the enforcement statement and the reasons for its existence.
+
+The Linux Kernel is provided under the terms of the GNU General Public License version 2 only (GPL-2.0), as specified in LICENSES/preferred/GPL-2.0, with an explicit syscall exception described in LICENSES/exceptions/Linux-syscall-note, as described in the COPYING file. Please refer to the Linux kernel licensing rules for more details.
+
+As Linux kernel developers, we are keenly interested in how our software is used and how the license for our software is enforced. We try to balance enforcement actions with the health and growth of the Linux kernel ecosystem. We formalized our views in the Linux Kernel Enforcement Statement.
+
+
+As stated in the above-mentioned enforcement statement:
+
+“The intent is to encourage more use of the software and we want companies and individuals to use, modify and distribute this software. We want to work with users in an open and transparent way to eliminate any uncertainty about our expectations regarding compliance or enforcement that might limit adoption of our software. We view legal action as a last resort, to be initiated only when other community efforts have failed to resolve the problem.”
+We encourage you to read the statement to understand its intent and spirit and better understand our community. We believe that working together, we will be stronger.
