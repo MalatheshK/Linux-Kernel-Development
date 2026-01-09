@@ -1,0 +1,83 @@
+Introduction to Linux Kernel Development Process
+​In this chapter, we will provide an overview of the Linux kernel development process, and we will learn how small incremental changes (patches) sent to a mailing list get included in the upstream kernel.
+
+About the Linux Kernel
+The Linux kernel is the result of collaborative development efforts from developers worldwide. Small incremental changes, also known as patches, add new features, make enhancements, and fix bugs.
+
+It is a 24-hour, seven days a week, and 365 days of continuous development process that results in a new release once every 2+ months, and several stable and extended stable releases once a week. New development and current release integration cycles run in parallel.
+
+A new release comes out every 10 to 11 weeks. Releases are time-based rather than feature-based. That means releases are not held up for features. There is no set date for these releases.
+
+What Does the Release Cycle Look Like?
+While the kernel development is a continuous process, at certain points during the development, when a set of features and bug fixes are ready, a new version of the kernel is released. These new versions are called kernel releases. Linus Torvalds releases a new kernel and opens a 2-week merge window. During this merge window, he pulls code for the next release from subsystem maintainers. Subsystem maintainers send signed git pull requests to Linus either during the merge window or before. All major new developments are added to the kernel during the merge window. 10,000+ change sets (patches) get pulled into Linus's tree during these 2 weeks, at the end of which he releases the first release candidate, known as rc1.
+
+The release cycle moves into a bug-fixes-only mode, with a series of release candidate (rc) releases from Linus. One week after rc1 is released, rc2 comes out; rc3 comes out a week after, and so on, until all major bug fixes and regressions (if any) are resolved.
+
+The new cycle begins with a 3-week quiet period that starts a week before the release and continues through the 2-week merge window. Maintainers and key contributors are busy getting their trees ready to send pull requests to Linus. Please note that the quiet period isn't formalized, and each subsystem might handle it differently. This period isn't well-advertised, and new developers might see a slow response from the community.
+
+Active Kernel Releases
+Select "Expand" to read more about the different types of active kernel releases.
+
+Active Kernel Releases
+
+Close Release Candidate (RC)
+Release Candidate or RC releases are mainline kernel pre-releases used for testing new features in the mainline (we will talk about the mainline tree shortly). These releases must be compiled from source, and kernel developers test them for bugs and regressions.
+
+Linux Development cycle
+
+Release numbering follows the major (x) and minor (y) convention. In “x.y”, “x” represents the major release number and y represents the minor number. When Linux x.y is released, the minor number “y” gets bumped up to “y+1” when Linux x.y+1-rc1 is released. As an example after Linux 6.17 is released, Linux 6.18-rc1 is released for integration testing after the merge window closes.
+
+Close Stable
+Stable releases are bug-fix-only releases. After Linus releases a mainline kernel, it moves into stable mode. Any bug fixes for a stable kernel are backported from the mainline kernel and applied to stable git by a designated stable kernel release maintainer. Stable kernel updates are released on average once a week or on an as-needed basis.
+
+Close Longterm
+Longterm releases are stable releases selected for long-term maintenance to provide critical bug fixes for older kernel trees.
+
+Stable releases are normally only maintained for a few mainline release cycles, unless they are marked as Longterm Stable Releases (LTS). A long-term release, as the name suggests, is maintained for a longer period to allow multiple vendors to collaborate on a specific kernel release that they plan on maintaining for an extended period of time.
+
+You can refer to The Linux Kernel Archives for more details about current stable and Longterm Stable Releases, and their release cadence.
+
+
+
+Kernel Trees - What Are They?
+You have probably heard about kernel trees; and we have already mentioned the term in previous pages. The kernel code is organized in several main and subsystem git repositories called trees.
+
+ 
+
+Select "Expand" to read about the different kernel trees.
+
+Kernel Trees
+
+Close The Mainline kernel tree
+This tree is maintained by Linus Torvalds. This is where Linus releases mainline kernels and RC releases.
+
+Close The Stable tree
+This tree is maintained by Greg Kroah-Hartman. This tree consists of stable release branches. Stable releases are based on this tree.
+
+Close The linux-next tree
+This is the integration tree maintained by Stephen Rothwell. Code from many subsystem trees is periodically pulled into this tree and then released for integration testing. Pulling changes from various trees catches merge conflicts (if any) between trees.
+
+One of Shuah's first actions as a maintainer was to request that her tree be added to linux-next. After she commits patches to her tree, Shuah waits 3 to 7 days before sending a pull request to Linus, giving enough time to find problems and regressions, if any. Patches applied to a tree that will be added to linux-next are only for the next merge window, including during the merge window. Patches for the next release may be added to linux-next after the merge window has closed, and the rc1 candidate has been released by Linus.
+
+
+
+Subsystem Maintainers
+Each major subsystem has its own tree and designated maintainer(s). Subsystems may have multiple maintainers. You can find a list of subsystems and their maintainers in the MAINTAINERS file in the kernel source.
+
+In addition, almost every kernel subsystem has a mailing list. Please refer to the Linux kernel mailing lists and the list archives on lore.kernel.org for a list of mailing lists and their archives. Archives are an excellent reference for patch discussions and the history of changes.
+
+The development process itself happens entirely over email. Contributors send patches to mailing lists through email, and contributions are then discussed through email. Most maintainers send an email response to contributors saying "Applied to tree-name" or "Thanks Applied" to contributors when they accept and commit patches. Some maintainers have a bot that will send patch applied notifications with the patch included in them. Please refer to the kernel.org git repositories for a list of kernel trees. Not all trees are on kernel.org. You can find subsystem git information and mailing lists for each of the subsystems in the MAINTAINERS file.
+
+You can refer to A guide to the Kernel Development Process for additional information.
+
+A new developer observed:
+
+ 
+
+"It is extremely amazing how the Linux community, which is worldwide, does all its work in email."
+ 
+
+
+
+Patch Flow
+
